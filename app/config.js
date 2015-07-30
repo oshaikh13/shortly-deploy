@@ -18,7 +18,8 @@ var urlsSchema = Schema({
   url: String,
   base_url: String,
   code: String,
-  visits: 0,
+  title: String,
+  visits: { type: Number, default: 0 },
   createdAt: { type: Date, default: Date.now }
 });
 
@@ -45,7 +46,6 @@ usersSchema.methods.hashPassword = function(cb){
   return cipher(this.password, null, null).bind(this)
     .then(function(hash) {
       this.password = hash;
-      console.log("PASSWORD   ", this.password);
       cb();
     });  
 }

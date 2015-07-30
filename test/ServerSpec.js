@@ -32,6 +32,8 @@ describe('Mongo Tests', function() {
 
   describe('Link creation: ', function() {
 
+    this.timeout(0);
+
     it('Only shortens valid urls, returning a 404 - Not found for invalid urls', function(done) {
       request(app)
         .post('/links')
@@ -82,7 +84,8 @@ describe('Mongo Tests', function() {
             Link.findOne({'url' : 'http://www.roflzoo.com/'})
               .exec(function(err,link){
                 if(err) console.log(err);
-                expect(link.title).to.equal('Rofl Zoo - Daily funny animal pictures');
+                console.log(link.title);
+                expect(link.title).to.equal("Funny pictures of animals, funny dog pictures");
               });
           })
           .end(done);
@@ -99,6 +102,8 @@ describe('Mongo Tests', function() {
           base_url: 'http://127.0.0.1:4568',
           visits: 0
         })
+
+        //link.generateCode();
 
         link.save(function() {
           done();
@@ -120,7 +125,9 @@ describe('Mongo Tests', function() {
       });
 
       it('Shortcode redirects to correct url', function(done) {
+        link.generateCode();
         var sha = link.code;
+        console.log('sha ++++++++', sha);
         request(app)
           .get('/' + sha)
           .expect(302)
