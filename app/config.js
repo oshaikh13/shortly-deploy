@@ -4,15 +4,17 @@ var Promise = require('bluebird');
 var Schema = mongoose.Schema;
 var crypto = require('crypto');
 
+mongoose.connect('mongodb://localhost/test');
+
 var db = mongoose.connection;
 
 db.on('error', console.error.bind(console, 'connection error:'));
 
 db.once('open', function (callback) {
-  console.log('DONE');
+  console.log('connection opened');
 });
 
-var urls = Schema({
+var urlsSchema = Schema({
   url: String,
   base_url: String,
   code: String,
@@ -20,31 +22,41 @@ var urls = Schema({
   createdAt: { type: Date, default: Date.now }
 });
 
-urls.methods.generateCode = function(){
+urlsSchema.methods.generateCode = function(){
   var shasum = crypto.createHash('sha1');
   shasum.update(this.url);
   this.code = shasum.digest('hex').slice(0, 5);
 }
 
-var users = Schema({
+var usersSchema = Schema({
   username: String,
   password: String,
   createdAt: { type: Date, default: Date.now }
 });
 
-users.methods.comparePassword = function(attemptedPassword, callback) {
-  bcrypt.compare(attemptedPassword, this.get('password'), function(err, isMatch) {
+usersSchema.methods.comparePassword = function(attemptedPassword, callback) {
+  bcrypt.compare(attemptedPassword, this.password, function(err, isMatch) {
     callback(isMatch);
   });
 }
 
-users.methods.hashPassword = function(){
+usersSchema.methods.hashPassword = function(cb){
   var cipher = Promise.promisify(bcrypt.hash);
-  return cipher(this.get('password'), null, null).bind(this)
+  return cipher(this.password, null, null).bind(this)
     .then(function(hash) {
-      this.set('password', hash);
+      this.password = hash;
+      console.log("PASSWORD   ", this.password);
+      cb();
     });  
 }
+
+//   hashPassword: function(){
+//     var cipher = Promise.promisify(bcrypt.hash);
+//     return cipher(this.get('password'), null, null).bind(this)
+//       .then(function(hash) {
+//         this.set('password', hash);
+//       });
+//   }
 
 // var db = Bookshelf.initialize({
 //   client: 'sqlite3',
@@ -87,5 +99,6 @@ users.methods.hashPassword = function(){
 //   }
 // });
 
-module.exports.usersSchema = users;
-module.exports.urlsSchema = urls;
+module.exports.usersModel = mongoose.model('User', usersSchema);
+module.exports.urlsModel = mongoose.model('Link', urlsSchema);
+

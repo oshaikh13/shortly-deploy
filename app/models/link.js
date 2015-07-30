@@ -15,5 +15,5 @@ var mongoose = require('../config');
 //   }
 // });
 
-var Link = mongoose.urlsSchema;
+var Link = mongoose.urlsModel;
 module.exports = Link;

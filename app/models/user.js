@@ -20,6 +20,6 @@ var mongoose = require('../config');
 //   }
 // });
 
-var User = mongoose.userSchema;
+var User = mongoose.usersModel;
 module.exports = User;
 
